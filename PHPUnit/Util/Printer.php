@@ -55,7 +55,7 @@
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.0.0
  */
-abstract class PHPUnit_Util_Printer
+class PHPUnit_Util_Printer
 {
     /**
      * If TRUE, flush output after every write.
@@ -100,7 +100,7 @@ abstract class PHPUnit_Util_Printer
                 } else {
                     if (strpos($out, 'php://') === FALSE &&
                         !is_dir(dirname($out))) {
-                      mkdir(dirname($out), 0777, TRUE);
+                        mkdir(dirname($out), 0777, TRUE);
                     }
 
                     $this->out = fopen($out, 'wt');
@@ -114,11 +114,11 @@ abstract class PHPUnit_Util_Printer
     }
 
     /**
-     * Flush buffer, optionally tidy up HTML, and close output.
+     * Flush buffer, optionally tidy up HTML, and close output if it's not to a php stream
      */
     public function flush()
     {
-        if ($this->out && $this->outTarget !== 'php://stderr') {
+        if ($this->out && strncmp($this->outTarget, 'php://', 6) !== 0) {
             fclose($this->out);
         }
 

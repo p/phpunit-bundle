@@ -146,8 +146,9 @@ class PHPUnit_Util_Class
                 $name .= 'arg' . $i;
             }
 
-            $default  = '';
-            $typeHint = '';
+            $default   = '';
+            $reference = '';
+            $typeHint  = '';
 
             if (!$forCall) {
                 if ($parameter->isArray()) {
@@ -170,19 +171,16 @@ class PHPUnit_Util_Class
                     $value   = $parameter->getDefaultValue();
                     $default = ' = ' . var_export($value, TRUE);
                 }
-
                 else if ($parameter->isOptional()) {
                     $default = ' = null';
                 }
+
+                if ($parameter->isPassedByReference()) {
+                    $reference = '&';
+                }
             }
 
-            $ref = '';
-
-            if ($parameter->isPassedByReference()) {
-                $ref = '&';
-            }
-
-            $parameters[] = $typeHint . $ref . $name . $default;
+            $parameters[] = $typeHint . $reference . $name . $default;
         }
 
         return join(', ', $parameters);
@@ -299,10 +297,6 @@ class PHPUnit_Util_Class
             throw PHPUnit_Util_InvalidArgumentHelper::factory(2, 'string');
         }
 
-        PHPUnit_Framework_Assert::assertObjectHasAttribute(
-          $attributeName, $object
-        );
-
         try {
             $attribute = new ReflectionProperty($object, $attributeName);
         }
@@ -321,27 +315,29 @@ class PHPUnit_Util_Class
             }
         }
 
-        if ($attribute == NULL || $attribute->isPublic()) {
-            return $object->$attributeName;
-        } else {
-            $array         = (array)$object;
-            $protectedName = "\0*\0" . $attributeName;
-
-            if (array_key_exists($protectedName, $array)) {
-                return $array[$protectedName];
+        if (isset($attribute)) {
+            if ($attribute == NULL || $attribute->isPublic()) {
+                return $object->$attributeName;
             } else {
-                $classes = self::getHierarchy(get_class($object));
+                $array         = (array)$object;
+                $protectedName = "\0*\0" . $attributeName;
 
-                foreach ($classes as $class) {
-                    $privateName = sprintf(
-                      "\0%s\0%s",
+                if (array_key_exists($protectedName, $array)) {
+                    return $array[$protectedName];
+                } else {
+                    $classes = self::getHierarchy(get_class($object));
 
-                      $class,
-                      $attributeName
-                    );
+                    foreach ($classes as $class) {
+                        $privateName = sprintf(
+                          "\0%s\0%s",
 
-                    if (array_key_exists($privateName, $array)) {
-                        return $array[$privateName];
+                          $class,
+                          $attributeName
+                        );
+
+                        if (array_key_exists($privateName, $array)) {
+                            return $array[$privateName];
+                        }
                     }
                 }
             }

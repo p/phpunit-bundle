@@ -42,9 +42,8 @@
  * @since      File available since Release 3.3.6
  */
 
-require_once 'PHPUnit/Framework/TestCase.php';
-
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'ExceptionTest.php';
+require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'RequirementsTest.php';
 
 /**
  *
@@ -90,6 +89,34 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
           array('class' => 'Class', 'code' => 1234, 'message' => 'Message'),
           PHPUnit_Util_Test::getExpectedException('ExceptionTest', 'testSix')
         );
+
+        $this->assertEquals(
+          array('class' => 'Class', 'code' => 'ExceptionCode', 'message' => 'Message'),
+          PHPUnit_Util_Test::getExpectedException('ExceptionTest', 'testSeven')
+        );
+   }
+
+    public function testGetRequirements()
+    {
+        $this->assertEquals(
+          array(),
+          PHPUnit_Util_Test::getRequirements('RequirementsTest', 'testOne')
+        );
+
+        $this->assertEquals(
+          array('PHPUnit' => '1.0'),
+          PHPUnit_Util_Test::getRequirements('RequirementsTest', 'testTwo')
+        );
+
+        $this->assertEquals(
+          array('PHP' => '2.0'),
+          PHPUnit_Util_Test::getRequirements('RequirementsTest', 'testThree')
+        );
+
+        $this->assertEquals(
+          array('PHPUnit'=>'2.0', 'PHP' => '1.0'),
+          PHPUnit_Util_Test::getRequirements('RequirementsTest', 'testFour')
+        );
     }
 
     public function testGetProvidedDataRegEx()
@@ -128,4 +155,15 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
      * @depends ほげ
      */
     public function methodForTestParseAnnotation() {}
+
+    public function testParseAnnotationThatIsOnlyOneLine() {
+        $this->assertEquals(
+          array('Bar'),
+          PHPUnit_Util_Test::getDependencies(get_class($this), 'methodForTestParseAnnotationThatIsOnlyOneLine')
+        );
+    }
+
+    /** @depends Bar */
+    public function methodForTestParseAnnotationThatIsOnlyOneLine() {}
+
 }

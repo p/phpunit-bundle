@@ -85,11 +85,7 @@ class PHPUnit_Util_Log_JSON extends PHPUnit_Util_Printer implements PHPUnit_Fram
         $this->writeCase(
           'error',
           $time,
-          PHPUnit_Util_Filter::getFilteredStacktrace(
-            $e,
-            TRUE,
-            FALSE
-          ),
+          PHPUnit_Util_Filter::getFilteredStacktrace($e, FALSE),
           $e->getMessage()
         );
 
@@ -108,11 +104,7 @@ class PHPUnit_Util_Log_JSON extends PHPUnit_Util_Printer implements PHPUnit_Fram
         $this->writeCase(
           'fail',
           $time,
-          PHPUnit_Util_Filter::getFilteredStacktrace(
-            $e,
-            TRUE,
-            FALSE
-          ),
+          PHPUnit_Util_Filter::getFilteredStacktrace($e, FALSE),
           $e->getMessage()
         );
 
@@ -225,7 +217,7 @@ class PHPUnit_Util_Log_JSON extends PHPUnit_Util_Printer implements PHPUnit_Fram
             'status'  => $status,
             'time'    => $time,
             'trace'   => $trace,
-            'message' => $message
+            'message' => PHPUnit_Util_String::convertToUtf8($message)
           )
         );
     }
