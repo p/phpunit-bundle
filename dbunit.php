@@ -35,14 +35,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once 'PHP/CodeCoverage/Filter.php';
-PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__, 'PHPUNIT');
-
 if (strpos('@php_bin@', '@php_bin') === 0) {
     set_include_path(dirname(__FILE__) . PATH_SEPARATOR . get_include_path());
 }
 
 require_once 'PHPUnit/Autoload.php';
+
+PHP_CodeCoverage_Filter::getInstance()->addFileToBlacklist(__FILE__, 'PHPUNIT');
 
 $command = new PHPUnit_Extensions_Database_UI_Command(
   new PHPUnit_Extensions_Database_UI_ModeFactory()

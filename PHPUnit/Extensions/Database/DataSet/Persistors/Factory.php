@@ -81,7 +81,7 @@ class PHPUnit_Extensions_Database_DataSet_Persistors_Factory
                 return $yamlPersistor;
 
             default:
-                throw new Exception("I don't know what you want from me. PERSISTOR");
+                throw new PHPUnit_Extensions_Database_Exception("I don't know what you want from me. PERSISTOR");
         }
     }
 }

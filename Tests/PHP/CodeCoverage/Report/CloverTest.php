@@ -53,7 +53,6 @@ if (!defined('TEST_FILES_PATH')) {
 }
 
 require_once TEST_FILES_PATH . '../TestCase.php';
-require_once 'PHP/CodeCoverage/Report/Clover.php';
 
 /**
  * Tests for the PHP_CodeCoverage_Report_Clover class.

@@ -164,7 +164,7 @@ class PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection implements PHPUni
      *
      * @param string $tableName
      * @param string $whereClause
-     * @param int
+     * @return int
      */
     public function getRowCount($tableName, $whereClause = NULL)
     {
@@ -173,6 +173,8 @@ class PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection implements PHPUni
         if (isset($whereClause)) {
             $query .= " WHERE {$whereClause}";
         }
+
+        return (int) $this->connection->query($query)->fetchColumn();
     }
 
     /**
@@ -204,5 +206,25 @@ class PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection implements PHPUni
     public function allowsCascading()
     {
         return $this->getMetaData()->allowsCascading();
+    }
+
+    /**
+    * Disables primary keys if connection does not allow setting them otherwise
+    *
+    * @param string $tableName
+    */
+    public function disablePrimaryKeys($tableName)
+    {
+        $this->getMetaData()->disablePrimaryKeys($tableName);
+    }
+
+    /**
+    * Reenables primary keys after they have been disabled
+    *
+    * @param string $tableName
+    */
+    public function enablePrimaryKeys($tableName)
+    {
+        $this->getMetaData()->enablePrimaryKeys($tableName);
     }
 }

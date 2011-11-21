@@ -42,11 +42,6 @@
  * @since      File available since Release 1.0.0
  */
 
-require_once 'PHPUnit/Framework/TestCase.php';
-require_once 'PHPUnit/Extensions/Database/DataSet/QueryTable.php';
-require_once 'PHPUnit/Extensions/Database/DataSet/DefaultTable.php';
-require_once 'PHPUnit/Extensions/Database/DB/DefaultDatabaseConnection.php';
-
 /**
  * @package    DbUnit
  * @author     Mike Lively <m@digitalsandwich.com>
@@ -123,17 +118,15 @@ class Extensions_Database_DataSet_QueryTableTest extends PHPUnit_Framework_TestC
         $expected_table = new PHPUnit_Extensions_Database_DataSet_DefaultTable(new PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData('table1', array('col1', 'col2', 'col3')));
         $expected_table->addRow(array('col1' => 'value1', 'col2' => 'value2', 'col3' => 'value3'));
         $expected_table->addRow(array('col1' => 'value4', 'col2' => 'value5', 'col3' => 'value6'));
-        $this->assertTrue($this->table->assertEquals($expected_table));
+        $this->assertTrue($this->table->matches($expected_table));
     }
 
     public function testAssertEqualsFails()
     {
-        $this->setExpectedException('Exception', 'Expected row count of 2, has a row count of 3');
-
         $expected_table = new PHPUnit_Extensions_Database_DataSet_DefaultTable(new PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData('table1', array('col1', 'col2', 'col3')));
         $expected_table->addRow(array('col1' => 'value1', 'col2' => 'value2', 'col3' => 'value3'));
         $expected_table->addRow(array('col1' => 'value4', 'col2' => 'value5', 'col3' => 'value6'));
         $expected_table->addRow(array('col1' => 'value7', 'col2' => 'value8', 'col3' => 'value9'));
-        $this->table->assertEquals($expected_table);
+        $this->assertFalse($this->table->matches($expected_table));
     }
 }

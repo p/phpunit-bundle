@@ -44,7 +44,6 @@
  * @since      File available since Release 1.0.0
  */
 
-require_once 'PHP/CodeCoverage/Util.php';
 @include_once 'vfsStream/vfsStream.php';
 
 if (!defined('TEST_FILES_PATH')) {
@@ -108,24 +107,6 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers PHP_CodeCoverage_Util::buildDirectoryStructure
-     */
-    public function testBuildDirectoryStructure()
-    {
-        $this->assertEquals(
-          array(
-            'src' => array(
-              'Money.php/f' => array(),
-              'MoneyBag.php/f' => array()
-            )
-          ),
-          PHP_CodeCoverage_Util::buildDirectoryStructure(
-            array('src/Money.php' => array(), 'src/MoneyBag.php' => array())
-          )
-        );
-    }
-
-    /**
      * @covers PHP_CodeCoverage_Util::crap
      */
     public function testCrap()
@@ -177,7 +158,7 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
     /**
      * @covers            PHP_CodeCoverage_Util::getLinesToBeCovered
      * @covers            PHP_CodeCoverage_Util::resolveCoversToReflectionObjects
-     * @expectedException RuntimeException
+     * @expectedException PHP_CodeCoverage_Exception
      */
     public function testGetLinesToBeCovered2()
     {
@@ -189,7 +170,7 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
     /**
      * @covers            PHP_CodeCoverage_Util::getLinesToBeCovered
      * @covers            PHP_CodeCoverage_Util::resolveCoversToReflectionObjects
-     * @expectedException RuntimeException
+     * @expectedException PHP_CodeCoverage_Exception
      */
     public function testGetLinesToBeCovered3()
     {
@@ -201,7 +182,7 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
     /**
      * @covers            PHP_CodeCoverage_Util::getLinesToBeCovered
      * @covers            PHP_CodeCoverage_Util::resolveCoversToReflectionObjects
-     * @expectedException RuntimeException
+     * @expectedException PHP_CodeCoverage_Exception
      */
     public function testGetLinesToBeCovered4()
     {
@@ -226,6 +207,11 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
             14 => TRUE,
             15 => TRUE,
             16 => TRUE,
+            18 => TRUE,
+            19 => TRUE,
+            20 => TRUE,
+            21 => TRUE,
+            22 => TRUE,
             23 => TRUE,
             24 => TRUE,
             25 => TRUE
@@ -247,131 +233,6 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
             TEST_FILES_PATH . 'source_without_ignore.php'
           )
         );
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::getPackageInformation
-     */
-    public function testGetPackageInformation()
-    {
-        $this->assertEquals(
-          array(
-            'category' => 'Foo',
-            'fullPackage' => 'Bar.Baz',
-            'namespace' => '',
-            'package' => 'Bar',
-            'subpackage' => 'Baz'
-          ),
-          PHP_CodeCoverage_Util::getPackageInformation(
-            'Foo',
-            '/**
- * @category Foo
- * @package Bar
- * @subpackage Baz
- */'
-          )
-        );
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::getPackageInformation
-     * @covers PHP_CodeCoverage_Util::arrayToName
-     */
-    public function testGetPackageInformation2()
-    {
-        $this->assertEquals(
-          array(
-            'category' => 'Foo',
-            'fullPackage' => 'Bar.Baz',
-            'namespace' => 'Foo',
-            'package' => 'Bar',
-            'subpackage' => 'Baz'
-          ),
-          PHP_CodeCoverage_Util::getPackageInformation(
-            'Foo\\Bar',
-            '/**
- * @category Foo
- * @package Bar
- * @subpackage Baz
- */'
-          )
-        );
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::getPackageInformation
-     */
-    public function testGetPackageInformation3()
-    {
-        $this->assertEquals(
-          array(
-            'category' => '',
-            'fullPackage' => '',
-            'namespace' => '',
-            'package' => '',
-            'subpackage' => ''
-          ),
-          PHP_CodeCoverage_Util::getPackageInformation(
-            'Foo',
-            ''
-          )
-        );
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::reducePaths
-     */
-    public function testReducePaths()
-    {
-        $files = array(
-          '/home/sb/Money/Money.php'    => array(),
-          '/home/sb/Money/MoneyBag.php' => array()
-        );
-
-        $commonPath = PHP_CodeCoverage_Util::reducePaths($files);
-
-        $this->assertEquals(
-          array(
-            'Money.php'    => array(),
-            'MoneyBag.php' => array()
-          ),
-          $files
-        );
-
-        $this->assertEquals('/home/sb/Money/', $commonPath);
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::reducePaths
-     */
-    public function testReducePaths2()
-    {
-        $files = array();
-
-        $commonPath = PHP_CodeCoverage_Util::reducePaths($files);
-
-        $this->assertEquals('.', $commonPath);
-    }
-
-    /**
-     * @covers PHP_CodeCoverage_Util::reducePaths
-     */
-    public function testReducePaths3()
-    {
-        $files = array(
-          '/home/sb/Money/Money.php' => array()
-        );
-
-        $commonPath = PHP_CodeCoverage_Util::reducePaths($files);
-
-        $this->assertEquals(
-          array(
-            'Money.php' => array()
-          ),
-          $files
-        );
-
-        $this->assertEquals('/home/sb/Money/', $commonPath);
     }
 
     /**
@@ -407,7 +268,7 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
 
     /**
      * @covers            PHP_CodeCoverage_Util::getDirectory
-     * @expectedException RuntimeException
+     * @expectedException PHP_CodeCoverage_Exception
      */
     public function testGetDirectory3()
     {
@@ -421,20 +282,6 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers PHP_CodeCoverage_Util::getSafeFilename
-     */
-    public function testGetSafeFilename()
-    {
-        $this->assertEquals(
-          'foo', PHP_CodeCoverage_Util::getSafeFilename('foo')
-        );
-
-        $this->assertEquals(
-          'foo_bar', PHP_CodeCoverage_Util::getSafeFilename('foo/bar')
-        );
-    }
-
-    /**
      * @covers PHP_CodeCoverage_Util::percent
      */
     public function testPercent()
@@ -442,7 +289,7 @@ class PHP_CodeCoverage_UtilTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(100, PHP_CodeCoverage_Util::percent(100, 0));
         $this->assertEquals(100, PHP_CodeCoverage_Util::percent(100, 100));
         $this->assertEquals(
-          '100.00', PHP_CodeCoverage_Util::percent(100, 100, TRUE)
+          '100.00%', PHP_CodeCoverage_Util::percent(100, 100, TRUE)
         );
     }
 
