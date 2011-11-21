@@ -41,8 +41,6 @@
  * @since     File available since Release 1.0.0
  */
 
-require_once 'PHP/Token/Stream.php';
-
 /**
  * A caching factory for token stream objects.
  *
@@ -71,5 +69,17 @@ class PHP_Token_Stream_CachingFactory
         }
 
         return self::$cache[$filename];
+    }
+
+    /**
+     * @param string $filename
+     */
+    public static function clear($filename = NULL)
+    {
+        if (is_string($filename)) {
+            unset(self::$cache[$filename]);
+        } else {
+            self::$cache = array();
+        }
     }
 }

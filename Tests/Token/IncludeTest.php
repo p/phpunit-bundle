@@ -36,10 +36,10 @@
  *
  * @package    PHP_TokenStream
  * @subpackage Tests
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @author     Laurent Laville <pear@laurent-laville.org>
  * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
  * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @since      File available since Release 1.0.0
+ * @since      File available since Release 1.0.2
  */
 
 if (!defined('TEST_FILES_PATH')) {
@@ -53,32 +53,65 @@ if (!defined('TEST_FILES_PATH')) {
 require_once 'PHP/Token/Stream.php';
 
 /**
- * Tests for the PHP_Token_NAMESPACE class.
+ * Tests for the PHP_Token_REQUIRE_ONCE, PHP_Token_REQUIRE
+ * PHP_Token_INCLUDE_ONCE and PHP_Token_INCLUDE_ONCE classes.
  *
  * @package    PHP_TokenStream
  * @subpackage Tests
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @author     Laurent Laville <pear@laurent-laville.org>
  * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
  * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
  * @version    Release: @package_version@
  * @link       http://github.com/sebastianbergmann/php-token-stream/
- * @since      Class available since Release 1.0.0
+ * @since      Class available since Release 1.0.2
  */
-class PHP_Token_NamespaceTest extends PHPUnit_Framework_TestCase
+class PHP_Token_IncludeTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @covers PHP_Token_NAMESPACE::getName
-     */
-    public function testGetName()
-    {
-        $tokenStream = new PHP_Token_Stream(
-          TEST_FILES_PATH . 'classInNamespace.php'
-        );
+    protected $ts;
 
-        foreach ($tokenStream as $token) {
-            if ($token instanceof PHP_Token_NAMESPACE) {
-                $this->assertSame('Foo\\Bar', $token->getName());
-            }
-        }
+    protected function setUp()
+    {
+        $this->ts = new PHP_Token_Stream(TEST_FILES_PATH . 'source3.php');
+    }
+
+    /**
+     * @covers PHP_Token_Includes::getName
+     * @covers PHP_Token_Includes::getType
+     */
+    public function testGetIncludes()
+    {
+        $this->assertSame(
+          array('test4.php', 'test3.php', 'test2.php', 'test1.php'),
+          $this->ts->getIncludes()
+        );
+    }
+
+    /**
+     * @covers PHP_Token_Includes::getName
+     * @covers PHP_Token_Includes::getType
+     */
+    public function testGetIncludesCategorized()
+    {
+        $this->assertSame(
+          array(
+            'require_once' => array('test4.php'),
+            'require'      => array('test3.php'),
+            'include_once' => array('test2.php'),
+            'include'      => array('test1.php')
+          ),
+          $this->ts->getIncludes(TRUE)
+        );
+    }
+
+    /**
+     * @covers PHP_Token_Includes::getName
+     * @covers PHP_Token_Includes::getType
+     */
+    public function testGetIncludesCategory()
+    {
+        $this->assertSame(
+          array('test4.php'),
+          $this->ts->getIncludes(TRUE, 'require_once')
+        );
     }
 }
