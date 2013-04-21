@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util_Log
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 2.3.0
  */
@@ -51,9 +51,8 @@
  * @package    PHPUnit
  * @subpackage Util_Log
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.1.0
  */
@@ -205,7 +204,7 @@ class PHPUnit_Util_Log_JUnit extends PHPUnit_Util_Printer implements PHPUnit_Fra
                     $buffer = '';
                 }
 
-                $buffer .= PHPUnit_Framework_TestFailure::exceptionToString($e).
+                $buffer .= PHPUnit_Framework_TestFailure::exceptionToString($e) .
                            "\n" .
                            PHPUnit_Util_Filter::getFilteredStacktrace($e);
 

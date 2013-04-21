@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.1.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.1.0
  */
@@ -229,6 +228,10 @@ class PHP_CodeCoverage_Report_Factory
         $max = count($paths);
 
         for ($i = 0; $i < $max; $i++) {
+            // strip phar:// prefixes
+            if (strpos($paths[$i], 'phar://') === 0) {
+                $paths[$i] = substr($paths[$i], 7);
+            }
             $paths[$i] = explode(DIRECTORY_SEPARATOR, $paths[$i]);
 
             if (empty($paths[$i][0])) {

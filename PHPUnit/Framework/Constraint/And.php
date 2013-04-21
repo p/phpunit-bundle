@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@
  * @subpackage Framework_Constraint
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.0.0
  */
@@ -51,9 +51,8 @@
  * @subpackage Framework_Constraint
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
@@ -70,7 +69,8 @@ class PHPUnit_Framework_Constraint_And extends PHPUnit_Framework_Constraint
     protected $lastConstraint = NULL;
 
     /**
-     * @param PHPUnit_Framework_Constraint[] $constraints
+     * @param  PHPUnit_Framework_Constraint[] $constraints
+     * @throws PHPUnit_Framework_Exception
      */
     public function setConstraints(array $constraints)
     {
@@ -78,7 +78,7 @@ class PHPUnit_Framework_Constraint_And extends PHPUnit_Framework_Constraint
 
         foreach ($constraints as $key => $constraint) {
             if (!($constraint instanceof PHPUnit_Framework_Constraint)) {
-                throw new InvalidArgumentException(
+                throw new PHPUnit_Framework_Exception(
                   'All parameters to ' . __CLASS__ .
                   ' must be a constraint object.'
                 );

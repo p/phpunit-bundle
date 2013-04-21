@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2002-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,24 +36,22 @@
  *
  * @package    DbUnit
  * @author     Mike Lively <m@digitalsandwich.com>
- * @copyright  2002-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2002-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 1.0.0
  */
 
-require_once 'SymfonyComponents/YAML/sfYaml.php';
-
 /**
- * Creates CsvDataSets.
+ * Creates YamlDataSets.
  *
- * You can incrementally add CSV files as tables to your datasets
+ * You can incrementally add YAML files as tables to your datasets
  *
  * @package    DbUnit
  * @author     Mike Lively <m@digitalsandwich.com>
- * @copyright  2010 Mike Lively <m@digitalsandwich.com>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2010-2013 Mike Lively <m@digitalsandwich.com>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
+ * @version    Release: 1.2.3
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 1.0.0
  */
@@ -82,7 +80,7 @@ class PHPUnit_Extensions_Database_DataSet_YamlDataSet extends PHPUnit_Extensions
      */
     public function addYamlFile($yamlFile)
     {
-        $data = sfYaml::load($yamlFile);
+        $data = Symfony\Component\Yaml\Yaml::parse($yamlFile);
 
         foreach ($data as $tableName => $rows) {
             if (!isset($rows)) {

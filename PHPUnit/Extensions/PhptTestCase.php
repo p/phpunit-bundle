@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,13 @@
  * @package    PHPUnit
  * @subpackage Extensions_PhptTestCase
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.1.4
  */
 
-if (PHPUnit_Util_Filesystem::fileExistsInIncludePath('PEAR/RunTest.php')) {
+if (stream_resolve_include_path('PEAR/RunTest.php')) {
     $currentErrorReporting = error_reporting(E_ERROR | E_WARNING | E_PARSE);
     require_once 'PEAR/RunTest.php';
     error_reporting($currentErrorReporting);
@@ -55,9 +55,8 @@ if (PHPUnit_Util_Filesystem::fileExistsInIncludePath('PEAR/RunTest.php')) {
  * @package    PHPUnit
  * @subpackage Extensions_PhptTestCase
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.1.4
  */
@@ -192,7 +191,7 @@ class PHPUnit_Extensions_PhptTestCase implements PHPUnit_Framework_Test, PHPUnit
         if (is_object($buffer) && $buffer instanceof PEAR_Error) {
             $result->addError(
               $this,
-              new RuntimeException($buffer->getMessage()),
+              new PHPUnit_Framework_Exception($buffer->getMessage()),
               $time
             );
         }

@@ -2,7 +2,7 @@
 /**
  * PHP_Timer
  *
- * Copyright (c) 2010-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2010-2012, Sebastian Bergmann <sb@sebastian-bergmann.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,39 +37,30 @@
  * @package    PHP
  * @subpackage Timer
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2010-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2010-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-timer
  * @since      File available since Release 1.1.0
  */
 
-function php_timer_autoload($class = NULL) {
-    static $classes = NULL;
-    static $path = NULL;
+spl_autoload_register(
+  function ($class)
+  {
+      static $classes = NULL;
+      static $path = NULL;
 
-    if ($classes === NULL) {
-        $classes = array(
-          'php_timer' => '/Timer.php'
-        );
+      if ($classes === NULL) {
+          $classes = array(
+            'php_timer' => '/Timer.php'
+          );
 
-        $path = dirname(dirname(__FILE__));
-    }
+          $path = dirname(dirname(__FILE__));
+      }
 
-    if ($class === NULL) {
-        $result = array(__FILE__);
+      $cn = strtolower($class);
 
-        foreach ($classes as $file) {
-            $result[] = $path . $file;
-        }
-
-        return $result;
-    }
-
-    $cn = strtolower($class);
-
-    if (isset($classes[$cn])) {
-        require $path . $classes[$cn];
-    }
-}
-
-spl_autoload_register('php_timer_autoload');
+      if (isset($classes[$cn])) {
+          require $path . $classes[$cn];
+      }
+  }
+);

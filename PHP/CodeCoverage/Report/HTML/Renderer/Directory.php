@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.1.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.1.0
  */
@@ -60,17 +59,12 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Directory extends PHP_CodeCoverage_R
     /**
      * @param PHP_CodeCoverage_Report_Node_Directory $node
      * @param string                                 $file
-     * @param string                                 $title
      */
-    public function render(PHP_CodeCoverage_Report_Node_Directory $node, $file, $title = NULL)
+    public function render(PHP_CodeCoverage_Report_Node_Directory $node, $file)
     {
-        if ($title === NULL) {
-            $title = $node->getName();
-        }
-
         $template = new Text_Template($this->templatePath . 'directory.html');
 
-        $this->setCommonTemplateVariables($template, $title, $node);
+        $this->setCommonTemplateVariables($template, $node);
 
         $items = $this->renderItem($node, TRUE);
 
@@ -100,8 +94,8 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Directory extends PHP_CodeCoverage_R
     protected function renderItem(PHP_CodeCoverage_Report_Node $item, $total = FALSE)
     {
         $data = array(
-          'numClasses'                   => $item->getNumClasses(),
-          'numTestedClasses'             => $item->getNumTestedClasses(),
+          'numClasses'                   => $item->getNumClassesAndTraits(),
+          'numTestedClasses'             => $item->getNumTestedClassesAndTraits(),
           'numMethods'                   => $item->getNumMethods(),
           'numTestedMethods'             => $item->getNumTestedMethods(),
           'linesExecutedPercent'         => $item->getLineExecutedPercent(FALSE),
@@ -110,13 +104,12 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Directory extends PHP_CodeCoverage_R
           'numExecutableLines'           => $item->getNumExecutableLines(),
           'testedMethodsPercent'         => $item->getTestedMethodsPercent(FALSE),
           'testedMethodsPercentAsString' => $item->getTestedMethodsPercent(),
-          'testedClassesPercent'         => $item->getTestedClassesPercent(FALSE),
-          'testedClassesPercentAsString' => $item->getTestedClassesPercent()
+          'testedClassesPercent'         => $item->getTestedClassesAndTraitsPercent(FALSE),
+          'testedClassesPercentAsString' => $item->getTestedClassesAndTraitsPercent()
         );
 
         if ($total) {
-            $data['itemClass'] = 'coverDirectory';
-            $data['name']      = 'Total';
+            $data['name'] = 'Total';
         } else {
             $data['name'] = sprintf(
               '<a href="%s.html">%s</a>',
@@ -125,11 +118,9 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Directory extends PHP_CodeCoverage_R
             );
 
             if ($item instanceof PHP_CodeCoverage_Report_Node_Directory) {
-                $data['icon']      = '<img alt="directory" src="directory.png"/> ';
-                $data['itemClass'] = 'coverDirectory';
+                $data['icon'] = '<i class="icon-folder-open"></i> ';
             } else {
-                $data['icon']      = '<img alt="file" src="file.png"/> ';
-                $data['itemClass'] = 'coverFile';
+                $data['icon'] = '<i class="icon-file"></i> ';
             }
         }
 

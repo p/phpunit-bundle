@@ -2,7 +2,7 @@
 /**
  * php-file-iterator
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2012, Sebastian Bergmann <sb@sebastian-bergmann.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@
  *
  * @package   File
  * @author    Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright 2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license   http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright 2009-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license   http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @since     File available since Release 1.3.0
  */
 
@@ -48,9 +48,9 @@
  * files is returned as an array.
  *
  * @author    Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright 2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license   http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version   Release: @package_version@
+ * @copyright 2009-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license   http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
+ * @version   Release: 1.3.3
  * @link      http://github.com/sebastianbergmann/php-file-iterator/tree
  * @since     Class available since Release 1.3.0
  */
@@ -114,6 +114,10 @@ class File_Iterator_Facade
     {
         $count = count($files);
 
+        if ($count == 0) {
+            return '';
+        }
+
         if ($count == 1) {
             return dirname($files[0]) . DIRECTORY_SEPARATOR;
         }
@@ -152,6 +156,6 @@ class File_Iterator_Facade
             $j++;
         }
 
-        return $common;
+        return DIRECTORY_SEPARATOR . $common;
     }
 }

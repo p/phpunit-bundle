@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.6.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.6.0
  */
@@ -105,6 +104,7 @@ class PHPUnit_Framework_ComparatorFactory
      * @param  mixed $expected The first value to compare
      * @param  mixed $actual The second value to compare
      * @return PHPUnit_Framework_Comparator
+     * @throws PHPUnit_Framework_Exception
      */
     public function getComparatorFor($expected, $actual)
     {
@@ -114,7 +114,7 @@ class PHPUnit_Framework_ComparatorFactory
             }
         }
 
-        throw new InvalidArgumentException(
+        throw new PHPUnit_Framework_Exception(
           sprintf(
             'No comparator is registered for comparing the types "%s" and "%s"',
             gettype($expected), gettype($actual)

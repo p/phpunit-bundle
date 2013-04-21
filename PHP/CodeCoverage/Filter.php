@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.0.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.0.0
  */
@@ -72,47 +71,9 @@ class PHP_CodeCoverage_Filter
     protected $whitelistedFiles = array();
 
     /**
-     * Prefills the blacklist with source files used by PHPUnit
-     * and PHP_CodeCoverage.
+     * @var boolean
      */
-    public function __construct()
-    {
-        $functions = array(
-          'file_iterator_autoload',
-          'php_codecoverage_autoload',
-          'php_invoker_autoload',
-          'php_timer_autoload',
-          'php_tokenstream_autoload',
-          'phpunit_autoload',
-          'phpunit_dbunit_autoload',
-          'phpunit_mockobject_autoload',
-          'phpunit_selenium_autoload',
-          'phpunit_story_autoload',
-          'text_template_autoload'
-        );
-
-        foreach ($functions as $function) {
-            if (function_exists($function)) {
-                $this->addFilesToBlacklist($function());
-            }
-        }
-
-        $file = PHP_CodeCoverage_Util::fileExistsInIncludePath(
-          'SymfonyComponents/YAML/sfYaml.php'
-        );
-
-        if ($file) {
-            $this->addFileToBlacklist($file);
-        }
-
-        $file = PHP_CodeCoverage_Util::fileExistsInIncludePath(
-          'SymfonyComponents/YAML/sfYamlDumper.php'
-        );
-
-        if ($file) {
-            $this->addFileToBlacklist($file);
-        }
-    }
+    protected $blacklistPrefilled = FALSE;
 
     /**
      * Adds a directory to the blacklist (recursively).
@@ -203,15 +164,12 @@ class PHP_CodeCoverage_Filter
         );
 
         foreach ($files as $file) {
-            $this->addFileToWhitelist($file, FALSE);
+            $this->addFileToWhitelist($file);
         }
     }
 
     /**
      * Adds a file to the whitelist.
-     *
-     * When the whitelist is empty (default), blacklisting is used.
-     * When the whitelist is not empty, whitelisting is used.
      *
      * @param string $filename
      */
@@ -275,6 +233,7 @@ class PHP_CodeCoverage_Filter
         if ($filename == '-' ||
             strpos($filename, 'eval()\'d code') !== FALSE ||
             strpos($filename, 'runtime-created function') !== FALSE ||
+            strpos($filename, 'runkit created function') !== FALSE ||
             strpos($filename, 'assert code') !== FALSE ||
             strpos($filename, 'regexp code') !== FALSE) {
             return FALSE;
@@ -292,18 +251,18 @@ class PHP_CodeCoverage_Filter
      * @param  string  $filename
      * @param  boolean $ignoreWhitelist
      * @return boolean
-     * @throws InvalidArgumentException
+     * @throws PHP_CodeCoverage_Exception
      */
-    public function isFiltered($filename, $ignoreWhitelist = FALSE)
+    public function isFiltered($filename)
     {
-        if (!is_bool($ignoreWhitelist)) {
-            throw new InvalidArgumentException;
-        }
-
         $filename = realpath($filename);
 
-        if (!$ignoreWhitelist && !empty($this->whitelistedFiles)) {
+        if (!empty($this->whitelistedFiles)) {
             return !isset($this->whitelistedFiles[$filename]);
+        }
+
+        if (!$this->blacklistPrefilled) {
+            $this->prefillBlacklist();
         }
 
         return isset($this->blacklistedFiles[$filename]);
@@ -338,5 +297,47 @@ class PHP_CodeCoverage_Filter
     public function hasWhitelist()
     {
         return !empty($this->whitelistedFiles);
+    }
+
+    /**
+     * @since Method available since Release 1.2.3
+     */
+    protected function prefillBlacklist()
+    {
+        $this->addDirectoryContainingClassToBlacklist('File_Iterator');
+        $this->addDirectoryContainingClassToBlacklist('PHP_CodeCoverage');
+        $this->addDirectoryContainingClassToBlacklist('PHP_Invoker');
+        $this->addDirectoryContainingClassToBlacklist('PHP_Timer');
+        $this->addDirectoryContainingClassToBlacklist('PHP_Token');
+        $this->addDirectoryContainingClassToBlacklist('PHPUnit_Framework_TestCase', 2);
+        $this->addDirectoryContainingClassToBlacklist('PHPUnit_Extensions_Database_TestCase', 2);
+        $this->addDirectoryContainingClassToBlacklist('PHPUnit_Framework_MockObject_Generator', 2);
+        $this->addDirectoryContainingClassToBlacklist('PHPUnit_Extensions_SeleniumTestCase', 2);
+        $this->addDirectoryContainingClassToBlacklist('PHPUnit_Extensions_Story_TestCase', 2);
+        $this->addDirectoryContainingClassToBlacklist('Text_Template');
+        $this->addDirectoryContainingClassToBlacklist('Symfony\Component\Yaml\Yaml');
+
+        $this->blacklistPrefilled = TRUE;
+    }
+
+    /**
+     * @param string  $className
+     * @param integer $parent
+     * @since Method available since Release 1.2.3
+     */
+    protected function addDirectoryContainingClassToBlacklist($className, $parent = 1)
+    {
+        if (!class_exists($className)) {
+            return;
+        }
+
+        $reflector = new ReflectionClass($className);
+        $directory = $reflector->getFileName();
+
+        for ($i = 0; $i < $parent; $i++) {
+            $directory = dirname($directory);
+        }
+
+        $this->addDirectoryToBlacklist($directory);
     }
 }

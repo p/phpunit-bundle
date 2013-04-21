@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.0.0
  */
@@ -53,9 +53,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
@@ -66,11 +65,11 @@ class PHPUnit_Framework_ExpectationFailedException extends PHPUnit_Framework_Ass
      */
     protected $comparisonFailure;
 
-    public function __construct($message, PHPUnit_Framework_ComparisonFailure $comparisonFailure = NULL)
+    public function __construct($message, PHPUnit_Framework_ComparisonFailure $comparisonFailure = NULL, Exception $previous = NULL)
     {
         $this->comparisonFailure = $comparisonFailure;
 
-        parent::__construct($message);
+        parent::__construct($message, 0, $previous);
     }
 
     /**

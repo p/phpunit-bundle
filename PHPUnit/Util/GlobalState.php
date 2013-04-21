@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.4.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.4.0
  */
@@ -192,11 +191,22 @@ class PHPUnit_Util_GlobalState
     {
         $blacklist = self::phpunitFiles();
         $files     = get_included_files();
+        $prefix    = FALSE;
         $result    = '';
 
+        if (defined('__PHPUNIT_PHAR__')) {
+            $prefix = 'phar://' . __PHPUNIT_PHAR__ . '/';
+        }
+
         for ($i = count($files) - 1; $i > 0; $i--) {
-            if (!isset($blacklist[$files[$i]]) && is_file($files[$i])) {
-                $result = 'require_once \'' . $files[$i] . "';\n" . $result;
+            $file = $files[$i];
+
+            if ($prefix !== FALSE) {
+                $file = str_replace($prefix, '', $file);
+            }
+
+            if (!isset($blacklist[$file]) && is_file($file)) {
+                $result = 'require_once \'' . $file . "';\n" . $result;
             }
         }
 
@@ -286,7 +296,7 @@ class PHPUnit_Util_GlobalState
                 strpos($declaredClasses[$i], 'PHP_Invoker') !== 0 &&
                 strpos($declaredClasses[$i], 'PHP_Timer') !== 0 &&
                 strpos($declaredClasses[$i], 'PHP_TokenStream') !== 0 &&
-                strpos($declaredClasses[$i], 'sfYaml') !== 0 &&
+                strpos($declaredClasses[$i], 'Symfony') !== 0 &&
                 strpos($declaredClasses[$i], 'Text_Template') !== 0 &&
                 !$declaredClasses[$i] instanceof PHPUnit_Framework_Test) {
                 $class = new ReflectionClass($declaredClasses[$i]);
@@ -373,43 +383,44 @@ class PHPUnit_Util_GlobalState
     public static function phpunitFiles()
     {
         if (self::$phpunitFiles === NULL) {
-            self::$phpunitFiles = array_merge(
-              phpunit_autoload(),
-              phpunit_mockobject_autoload(),
-              file_iterator_autoload(),
-              php_codecoverage_autoload(),
-              php_timer_autoload(),
-              php_tokenstream_autoload(),
-              text_template_autoload()
-            );
-
-            if (function_exists('phpunit_dbunit_autoload')) {
-                self::$phpunitFiles = array_merge(
-                  self::$phpunitFiles, phpunit_dbunit_autoload()
-                );
-            }
-
-            if (function_exists('phpunit_selenium_autoload')) {
-                self::$phpunitFiles = array_merge(
-                  self::$phpunitFiles, phpunit_selenium_autoload()
-                );
-            }
-
-            if (function_exists('phpunit_story_autoload')) {
-                self::$phpunitFiles = array_merge(
-                  self::$phpunitFiles, phpunit_story_autoload()
-                );
-            }
-
-            if (function_exists('php_invoker_autoload')) {
-                self::$phpunitFiles = array_merge(
-                  self::$phpunitFiles, php_invoker_autoload()
-                );
-            }
-
-            self::$phpunitFiles = array_flip(self::$phpunitFiles);
+            self::addDirectoryContainingClassToPHPUnitFilesList('File_Iterator');
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHP_CodeCoverage');
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHP_Invoker');
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHP_Timer');
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHP_Token');
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHPUnit_Framework_TestCase', 2);
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHPUnit_Extensions_Database_TestCase', 2);
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHPUnit_Framework_MockObject_Generator', 2);
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHPUnit_Extensions_SeleniumTestCase', 2);
+            self::addDirectoryContainingClassToPHPUnitFilesList('PHPUnit_Extensions_Story_TestCase', 2);
+            self::addDirectoryContainingClassToPHPUnitFilesList('Text_Template');
         }
 
         return self::$phpunitFiles;
+    }
+
+    /**
+     * @param string  $className
+     * @param integer $parent
+     * @since Method available since Release 3.7.2
+     */
+    protected static function addDirectoryContainingClassToPHPUnitFilesList($className, $parent = 1)
+    {
+        if (!class_exists($className)) {
+            return;
+        }
+
+        $reflector = new ReflectionClass($className);
+        $directory = $reflector->getFileName();
+
+        for ($i = 0; $i < $parent; $i++) {
+            $directory = dirname($directory);
+        }
+
+        $facade = new File_Iterator_Facade;
+
+        foreach ($facade->getFilesAsArray($directory, '.php') as $file) {
+            self::$phpunitFiles[$file] = TRUE;
+        }
     }
 }

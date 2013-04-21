@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 2.0.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.0.0
  */
@@ -83,7 +82,7 @@ class PHPUnit_Util_Printer
      * Constructor.
      *
      * @param  mixed $out
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public function __construct($out = NULL)
     {
@@ -93,7 +92,7 @@ class PHPUnit_Util_Printer
                     $out = explode(':', str_replace('socket://', '', $out));
 
                     if (sizeof($out) != 2) {
-                        throw new InvalidArgumentException;
+                        throw new PHPUnit_Framework_Exception;
                     }
 
                     $this->out = fsockopen($out[0], $out[1]);

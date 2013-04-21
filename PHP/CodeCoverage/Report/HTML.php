@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.0.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.0.0
  */
@@ -88,29 +87,17 @@ class PHP_CodeCoverage_Report_HTML
     protected $highlight;
 
     /**
-     * @var string
-     */
-    protected $title;
-
-    /**
-     * @var boolean
-     */
-    protected $yui;
-
-    /**
      * Constructor.
      *
      * @param array $options
      */
-    public function __construct($title = '', $charset = 'UTF-8', $yui = TRUE, $highlight = FALSE, $lowUpperBound = 35, $highLowerBound = 70, $generator = '')
+    public function __construct($charset = 'UTF-8', $highlight = FALSE, $lowUpperBound = 35, $highLowerBound = 70, $generator = '')
     {
         $this->charset        = $charset;
         $this->generator      = $generator;
         $this->highLowerBound = $highLowerBound;
         $this->highlight      = $highlight;
         $this->lowUpperBound  = $lowUpperBound;
-        $this->title          = $title;
-        $this->yui            = $yui;
 
         $this->templatePath = sprintf(
           '%s%sHTML%sRenderer%sTemplate%s',
@@ -129,9 +116,13 @@ class PHP_CodeCoverage_Report_HTML
      */
     public function process(PHP_CodeCoverage $coverage, $target)
     {
-        $target = PHP_CodeCoverage_Util::getDirectory($target);
+        $target = $this->getDirectory($target);
         $report = $coverage->getReport();
         unset($coverage);
+
+        if (!isset($_SERVER['REQUEST_TIME'])) {
+            $_SERVER['REQUEST_TIME'] = time();
+        }
 
         $date = date('D M j G:i:s T Y', $_SERVER['REQUEST_TIME']);
 
@@ -160,15 +151,11 @@ class PHP_CodeCoverage_Report_HTML
           $date,
           $this->lowUpperBound,
           $this->highLowerBound,
-          $this->highlight,
-          $this->yui
+          $this->highlight
         );
 
-        $dashboard->render(
-          $report, $target . 'index.dashboard.html', $this->title
-        );
-
-        $directory->render($report, $target . 'index.html', $this->title);
+        $dashboard->render($report, $target . 'index.dashboard.html');
+        $directory->render($report, $target . 'index.html');
 
         foreach ($report as $node) {
             $id = $node->getId();
@@ -189,21 +176,47 @@ class PHP_CodeCoverage_Report_HTML
      */
     protected function copyFiles($target)
     {
-        $files = array(
-          'close12_1.gif',
-          'container.css',
-          'container-min.js',
-          'directory.png',
-          'file.png',
-          'glass.png',
-          'highcharts.js',
-          'jquery.min.js',
-          'style.css',
-          'yahoo-dom-event.js'
-        );
+        $dir = $this->getDirectory($target . 'css');
+        copy($this->templatePath . 'css/bootstrap.min.css', $dir . 'bootstrap.min.css');
+        copy($this->templatePath . 'css/bootstrap-responsive.min.css', $dir . 'bootstrap-responsive.min.css');
+        copy($this->templatePath . 'css/style.css', $dir . 'style.css');
 
-        foreach ($files as $file) {
-            copy($this->templatePath . $file, $target . $file);
+        $dir = $this->getDirectory($target . 'js');
+        copy($this->templatePath . 'js/bootstrap.min.js', $dir . 'bootstrap.min.js');
+        copy($this->templatePath . 'js/highcharts.js', $dir . 'highcharts.js');
+        copy($this->templatePath . 'js/jquery.min.js', $dir . 'jquery.min.js');
+        copy($this->templatePath . 'js/html5shiv.js', $dir . 'html5shiv.js');
+
+        $dir = $this->getDirectory($target . 'img');
+        copy($this->templatePath . 'img/glyphicons-halflings.png', $dir . 'glyphicons-halflings.png');
+        copy($this->templatePath . 'img/glyphicons-halflings-white.png', $dir . 'glyphicons-halflings-white.png');
+    }
+
+    /**
+     * @param  string $directory
+     * @return string
+     * @throws PHP_CodeCoverage_Exception
+     * @since  Method available since Release 1.2.0
+     */
+    protected function getDirectory($directory)
+    {
+        if (substr($directory, -1, 1) != DIRECTORY_SEPARATOR) {
+            $directory .= DIRECTORY_SEPARATOR;
         }
+
+        if (is_dir($directory)) {
+            return $directory;
+        }
+
+        if (@mkdir($directory, 0777, TRUE)) {
+            return $directory;
+        }
+
+        throw new PHP_CodeCoverage_Exception(
+          sprintf(
+            'Directory "%s" does not exist.',
+            $directory
+          )
+        );
     }
 }

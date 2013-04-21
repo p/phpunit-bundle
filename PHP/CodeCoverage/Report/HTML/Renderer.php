@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.1.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.1.0
  */
@@ -108,89 +107,72 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
     }
 
     /**
-     * @param  integer $percent
-     * @return array
-     */
-    protected function getColorLevel($percent)
-    {
-        if ($percent < $this->lowUpperBound) {
-            $color = 'scarlet_red';
-            $level = 'Lo';
-        }
-
-        else if ($percent >= $this->lowUpperBound &&
-                 $percent <  $this->highLowerBound) {
-            $color = 'butter';
-            $level = 'Med';
-        }
-
-        else {
-            $color = 'chameleon';
-            $level = 'Hi';
-        }
-
-        return array($color, $level);
-    }
-
-    /**
      * @param  Text_Template $template
      * @param  array         $data
      * @return string
      */
     protected function renderItemTemplate(Text_Template $template, array $data)
     {
+        $numSeperator = '&nbsp;/&nbsp;';
+        $classesBar    = '&nbsp;';
+        $classesLevel  = 'None';
+        $classesNumber = '&nbsp;';
+
         if (isset($data['numClasses']) && $data['numClasses'] > 0) {
-            list($classesColor, $classesLevel) = $this->getColorLevel(
+            $classesLevel = $this->getColorLevel($data['testedClassesPercent']);
+
+            $classesNumber = $data['numTestedClasses'] . $numSeperator .
+                             $data['numClasses'];
+
+            $classesBar = $this->getCoverageBar(
               $data['testedClassesPercent']
             );
-
-            $classesNumber = $data['numTestedClasses'] . ' / ' .
-                             $data['numClasses'];
-        } else {
-            $classesColor  = 'snow';
-            $classesLevel  = 'None';
-            $classesNumber = '&nbsp;';
         }
+
+        $methodsBar    = '&nbsp;';
+        $methodsLevel  = 'None';
+        $methodsNumber = '&nbsp;';
 
         if ($data['numMethods'] > 0) {
-            list($methodsColor, $methodsLevel) = $this->getColorLevel(
+            $methodsLevel = $this->getColorLevel($data['testedMethodsPercent']);
+
+            $methodsNumber = $data['numTestedMethods'] . $numSeperator .
+                             $data['numMethods'];
+
+            $methodsBar = $this->getCoverageBar(
               $data['testedMethodsPercent']
             );
-
-            $methodsNumber = $data['numTestedMethods'] . ' / ' .
-                             $data['numMethods'];
-        } else {
-            $methodsColor  = 'snow';
-            $methodsLevel  = 'None';
-            $methodsNumber = '&nbsp;';
         }
 
-        list($linesColor, $linesLevel) = $this->getColorLevel(
-          $data['linesExecutedPercent']
-        );
+        $linesBar    = '&nbsp;';
+        $linesLevel  = 'None';
+        $linesNumber = '&nbsp;';
+
+        if ($data['numExecutableLines'] > 0) {
+            $linesLevel = $this->getColorLevel($data['linesExecutedPercent']);
+
+            $linesNumber = $data['numExecutedLines'] . $numSeperator .
+                           $data['numExecutableLines'];
+
+            $linesBar = $this->getCoverageBar(
+              $data['linesExecutedPercent']
+            );
+        }
 
         $template->setVar(
           array(
-            'itemClass' => isset($data['itemClass']) ? $data['itemClass'] : '',
             'icon' => isset($data['icon']) ? $data['icon'] : '',
             'crap' => isset($data['crap']) ? $data['crap'] : '',
             'name' => $data['name'],
-            'lines_color' => $linesColor,
-            'lines_executed_width' => $data['linesExecutedPercent'],
-            'lines_not_executed_width' => 100 - $data['linesExecutedPercent'],
+            'lines_bar' => $linesBar,
             'lines_executed_percent' => $data['linesExecutedPercentAsString'],
             'lines_level' => $linesLevel,
-            'num_executed_lines' => $data['numExecutedLines'],
-            'num_executable_lines' => $data['numExecutableLines'],
-            'methods_color' => $methodsColor,
-            'methods_tested_width' => $data['testedMethodsPercent'],
-            'methods_not_tested_width' => 100 - $data['testedMethodsPercent'],
+            'lines_number' => $linesNumber,
+            'methods_bar' => $methodsBar,
             'methods_tested_percent' => $data['testedMethodsPercentAsString'],
             'methods_level' => $methodsLevel,
             'methods_number' => $methodsNumber,
-            'classes_color' => $classesColor,
-            'classes_tested_width' => isset($data['testedClassesPercent']) ? $data['testedClassesPercent'] : '',
-            'classes_not_tested_width' => isset($data['testedClassesPercent']) ? 100 - $data['testedClassesPercent'] : '',
+            'classes_bar' => $classesBar,
             'classes_tested_percent' => isset($data['testedClassesPercentAsString']) ? $data['testedClassesPercentAsString'] : '',
             'classes_level' => $classesLevel,
             'classes_number' => $classesNumber
@@ -202,38 +184,102 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
 
     /**
      * @param Text_Template                $template
-     * @param string                       $title
      * @param PHP_CodeCoverage_Report_Node $node
      */
-    protected function setCommonTemplateVariables(Text_Template $template, $title, PHP_CodeCoverage_Report_Node $node = NULL)
+    protected function setCommonTemplateVariables(Text_Template $template, PHP_CodeCoverage_Report_Node $node)
     {
-        $link = '';
-
-        if ($node !== NULL) {
-            $path = $node->getPathAsArray();
-
-            foreach ($path as $step) {
-                $link .= sprintf(
-                  '%s<a href="%s.html">%s</a>',
-                  !empty($link) ? '/' : '',
-                  $step->getId(),
-                  $step->getName()
-                );
-            }
-        }
-
         $template->setVar(
           array(
-            'title'            => $title,
-            'link'             => $link,
+            'id'               => $node->getId(),
+            'full_path'        => $node->getPath(),
+            'breadcrumbs'      => $this->getBreadcrumbs($node),
             'charset'          => $this->charset,
             'date'             => $this->date,
-            'version'          => '@package_version@',
+            'version'          => PHP_CodeCoverage_Version::id(),
             'php_version'      => PHP_VERSION,
             'generator'        => $this->generator,
             'low_upper_bound'  => $this->lowUpperBound,
             'high_lower_bound' => $this->highLowerBound
           )
         );
+    }
+
+    protected function getBreadcrumbs(PHP_CodeCoverage_Report_Node $node)
+    {
+        $breadcrumbs = '';
+
+        $path = $node->getPathAsArray();
+
+        foreach ($path as $step) {
+            if ($step !== $node) {
+                $breadcrumbs .= $this->getInactiveBreadcrumb($step);
+            } else {
+                $breadcrumbs .= $this->getActiveBreadcrumb(
+                  $step,
+                  $node instanceof PHP_CodeCoverage_Report_Node_Directory
+                );
+            }
+        }
+
+        return $breadcrumbs;
+    }
+
+    protected function getActiveBreadcrumb(PHP_CodeCoverage_Report_Node $node, $isDirectory)
+    {
+        $buffer = sprintf(
+          '        <li class="active">%s</li>' . "\n",
+          $node->getName()
+        );
+
+        if ($isDirectory) {
+            $buffer .= sprintf(
+              '        <li>(<a href="%s.dashboard.html">Dashboard</a>)</li>' . "\n",
+              $node->getId()
+            );
+        }
+
+        return $buffer;
+    }
+
+    protected function getInactiveBreadcrumb(PHP_CodeCoverage_Report_Node $node)
+    {
+        return sprintf(
+          '        <li><a href="%s.html">%s</a> <span class="divider">/</span></li>' . "\n",
+          $node->getId(),
+          $node->getName()
+        );
+    }
+
+    protected function getCoverageBar($percent)
+    {
+        $level = $this->getColorLevel($percent);
+
+        $template = new Text_Template(
+          $this->templatePath . 'coverage_bar.html'
+        );
+
+        $template->setVar(array('level' => $level, 'percent' => sprintf("%.2F", $percent)));
+
+        return $template->render();
+    }
+
+    /**
+     * @param  integer $percent
+     * @return string
+     */
+    protected function getColorLevel($percent)
+    {
+        if ($percent < $this->lowUpperBound) {
+            return 'danger';
+        }
+
+        else if ($percent >= $this->lowUpperBound &&
+                 $percent <  $this->highLowerBound) {
+            return 'warning';
+        }
+
+        else {
+            return 'success';
+        }
     }
 }

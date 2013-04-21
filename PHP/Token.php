@@ -2,7 +2,7 @@
 /**
  * php-token-stream
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2012, Sebastian Bergmann <sb@sebastian-bergmann.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@
  *
  * @package   PHP_TokenStream
  * @author    Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright 2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license   http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright 2009-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license   http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @since     File available since Release 1.0.0
  */
 
@@ -45,9 +45,9 @@
  * A PHP token.
  *
  * @author    Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright 2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license   http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version   Release: @package_version@
+ * @copyright 2009-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license   http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
+ * @version   Release: 1.1.5
  * @link      http://github.com/sebastianbergmann/php-token-stream/tree
  * @since     Class available since Release 1.0.0
  */
@@ -155,6 +155,53 @@ abstract class PHP_TokenWithScope extends PHP_Token
         }
     }
 
+    public function getEndTokenId()
+    {
+        $block  = 0;
+        $i      = $this->id;
+        $tokens = $this->tokenStream->tokens();
+
+        while ($this->endTokenId === NULL && isset($tokens[$i])) {
+            if ($tokens[$i] instanceof PHP_Token_OPEN_CURLY ||
+                $tokens[$i] instanceof PHP_Token_CURLY_OPEN) {
+                $block++;
+            }
+
+            else if ($tokens[$i] instanceof PHP_Token_CLOSE_CURLY) {
+                $block--;
+
+                if ($block === 0) {
+                    $this->endTokenId = $i;
+                }
+            }
+
+            else if (($this instanceof PHP_Token_FUNCTION || 
+                $this instanceof PHP_Token_NAMESPACE) &&
+                $tokens[$i] instanceof PHP_Token_SEMICOLON) {
+                if ($block === 0) {
+                    $this->endTokenId = $i;
+                }
+            }
+
+            $i++;
+        }
+
+        if ($this->endTokenId === NULL) {
+            $this->endTokenId = $this->id;
+        }
+
+        return $this->endTokenId;
+    }
+
+    public function getEndLine()
+    {
+        return $this->tokenStream[$this->getEndTokenId()]->getLine();
+    }
+
+}
+
+abstract class PHP_TokenWithScopeAndVisibility extends PHP_TokenWithScope {
+
     public function getVisibility()
     {
         $tokens = $this->tokenStream->tokens();
@@ -204,48 +251,6 @@ abstract class PHP_TokenWithScope extends PHP_Token
         return implode(',', $keywords);
     }
 
-    public function getEndTokenId()
-    {
-        $block  = 0;
-        $i      = $this->id;
-        $tokens = $this->tokenStream->tokens();
-
-        while ($this->endTokenId === NULL && isset($tokens[$i])) {
-            if ($tokens[$i] instanceof PHP_Token_OPEN_CURLY ||
-                $tokens[$i] instanceof PHP_Token_CURLY_OPEN) {
-                $block++;
-            }
-
-            else if ($tokens[$i] instanceof PHP_Token_CLOSE_CURLY) {
-                $block--;
-
-                if ($block === 0) {
-                    $this->endTokenId = $i;
-                }
-            }
-
-            else if ($this instanceof PHP_Token_FUNCTION &&
-                $tokens[$i] instanceof PHP_Token_SEMICOLON) {
-
-                if ($block === 0) {
-                    $this->endTokenId = $i;
-                }
-            }
-
-            $i++;
-        }
-
-        if ($this->endTokenId === NULL) {
-            $this->endTokenId = $this->id;
-        }
-
-        return $this->endTokenId;
-    }
-
-    public function getEndLine()
-    {
-        return $this->tokenStream[$this->getEndTokenId()]->getLine();
-    }
 }
 
 abstract class PHP_Token_Includes extends PHP_Token
@@ -354,8 +359,10 @@ class PHP_Token_DEFAULT extends PHP_Token {}
 class PHP_Token_BREAK extends PHP_Token {}
 class PHP_Token_CONTINUE extends PHP_Token {}
 class PHP_Token_GOTO extends PHP_Token {}
+class PHP_Token_CALLABLE extends PHP_Token {}
+class PHP_Token_INSTEADOF extends PHP_Token {}
 
-class PHP_Token_FUNCTION extends PHP_TokenWithScope
+class PHP_Token_FUNCTION extends PHP_TokenWithScopeAndVisibility
 {
     protected $arguments;
     protected $ccn;
@@ -408,6 +415,19 @@ class PHP_Token_FUNCTION extends PHP_TokenWithScope
 
         else {
             $this->name = 'anonymous function';
+        }
+
+        if ($this->name != 'anonymous function') {
+            for ($i = $this->id; $i; --$i) {
+                if ($tokens[$i] instanceof PHP_Token_NAMESPACE) {
+                    $this->name = $tokens[$i]->getName() . '\\' . $this->name;
+                    break;
+                }
+
+                if ($tokens[$i] instanceof PHP_Token_INTERFACE) {
+                    break;
+                }
+            }
         }
 
         return $this->name;
@@ -491,7 +511,7 @@ class PHP_Token_ISSET extends PHP_Token {}
 class PHP_Token_EMPTY extends PHP_Token {}
 class PHP_Token_HALT_COMPILER extends PHP_Token {}
 
-class PHP_Token_INTERFACE extends PHP_TokenWithScope
+class PHP_Token_INTERFACE extends PHP_TokenWithScopeAndVisibility
 {
     protected $interfaces;
 
@@ -626,6 +646,7 @@ class PHP_Token_DOUBLE_ARROW extends PHP_Token {}
 class PHP_Token_LIST extends PHP_Token {}
 class PHP_Token_ARRAY extends PHP_Token {}
 class PHP_Token_CLASS_C extends PHP_Token {}
+class PHP_Token_TRAIT_C extends PHP_Token {}
 class PHP_Token_METHOD_C extends PHP_Token {}
 class PHP_Token_FUNC_C extends PHP_Token {}
 class PHP_Token_LINE extends PHP_Token {}
@@ -642,7 +663,7 @@ class PHP_Token_DOLLAR_OPEN_CURLY_BRACES extends PHP_Token {}
 class PHP_Token_CURLY_OPEN extends PHP_Token {}
 class PHP_Token_PAAMAYIM_NEKUDOTAYIM extends PHP_Token {}
 
-class PHP_Token_NAMESPACE extends PHP_Token
+class PHP_Token_NAMESPACE extends PHP_TokenWithScope
 {
     public function getName()
     {

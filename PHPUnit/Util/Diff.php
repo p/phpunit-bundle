@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Kore Nordmann <mail@kore-nordmann.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.4.0
  */
@@ -51,16 +51,15 @@
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Kore Nordmann <mail@kore-nordmann.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.4.0
  */
 class PHPUnit_Util_Diff
 {
     /**
-     * Returns the diff between two arrays or strings.
+     * Returns the diff between two arrays or strings as string.
      *
      * @param  array|string $from
      * @param  array|string $to
@@ -68,88 +67,15 @@ class PHPUnit_Util_Diff
      */
     public static function diff($from, $to)
     {
-        if (is_string($from)) {
-            $from = preg_split('(\r\n|\r|\n)', $from);
-        }
-
-        if (is_string($to)) {
-            $to = preg_split('(\r\n|\r|\n)', $to);
-        }
-
-        $buffer     = "--- Expected\n+++ Actual\n";
-        $start      = array();
-        $end        = array();
-        $fromLength = count($from);
-        $toLength   = count($to);
-        $length     = min($fromLength, $toLength);
-
-        for ($i = 0; $i < $length; ++$i) {
-            if ($from[$i] === $to[$i]) {
-                $start[] = $from[$i];
-                unset($from[$i], $to[$i]);
-            } else {
-                break;
-            }
-        }
-
-        $length -= $i;
-
-        for ($i = 1; $i < $length; ++$i) {
-            if ($from[$fromLength - $i] === $to[$toLength - $i]) {
-                array_unshift($end, $from[$fromLength - $i]);
-                unset($from[$fromLength - $i], $to[$toLength - $i]);
-            } else {
-                break;
-            }
-        }
-
-        $common = self::longestCommonSubsequence(
-          array_values($from), array_values($to)
-        );
-
-        $diff = array();
-        $line = 0;
-
-        foreach ($start as $token) {
-            $diff[] = array($token, 0 /* OLD */);
-        }
-
-        reset($from);
-        reset($to);
-
-        foreach ($common as $token) {
-            while ((($fromToken = reset($from)) !== $token)) {
-                $diff[] = array(array_shift($from), 2 /* REMOVED */);
-            }
-
-            while ((($toToken = reset($to)) !== $token)) {
-                $diff[] = array(array_shift($to), 1 /* ADDED */);
-            }
-
-            $diff[] = array($token, 0 /* OLD */);
-
-            array_shift($from);
-            array_shift($to);
-        }
-
-        while (($token = array_shift($from)) !== NULL) {
-            $diff[] = array($token, 2 /* REMOVED */);
-        }
-
-        while (($token = array_shift($to)) !== NULL) {
-            $diff[] = array($token, 1 /* ADDED */);
-        }
-
-        foreach ($end as $token) {
-            $diff[] = array($token, 0 /* OLD */);
-        }
+        $buffer= "--- Expected\n+++ Actual\n";
+        $diff  = self::diffToArray($from,$to);
 
         $inOld = FALSE;
         $i     = 0;
         $old   = array();
 
         foreach ($diff as $line) {
-            if ($line[1] === 0 /* OLD */) {
+            if ($line[1] ===  0 /* OLD */) {
                 if ($inOld === FALSE) {
                     $inOld = $i;
                 }
@@ -202,6 +128,112 @@ class PHPUnit_Util_Diff
         }
 
         return $buffer;
+    }
+
+    /**
+     * Returns the diff between two arrays or strings as array.
+     *
+     * every array-entry containts two elements:
+     *   - [0] => string $token
+     *   - [1] => 2|1|0
+     *
+     * - 2: REMOVED: $token was removed from $from
+     * - 1: ADDED: $token was added to $from
+     * - 0: OLD: $token is not changed in $to
+     *
+     * @param  array|string $from
+     * @param  array|string $to
+     * @return array
+     */
+    public static function diffToArray($from, $to)
+    {
+        preg_match_all('(\r\n|\r|\n)', $from, $fromMatches);
+        preg_match_all('(\r\n|\r|\n)', $to, $toMatches);
+
+        if (is_string($from)) {
+            $from = preg_split('(\r\n|\r|\n)', $from);
+        }
+
+        if (is_string($to)) {
+            $to = preg_split('(\r\n|\r|\n)', $to);
+        }
+
+        $start      = array();
+        $end        = array();
+        $fromLength = count($from);
+        $toLength   = count($to);
+        $length     = min($fromLength, $toLength);
+
+        for ($i = 0; $i < $length; ++$i) {
+            if ($from[$i] === $to[$i]) {
+                $start[] = $from[$i];
+                unset($from[$i], $to[$i]);
+            } else {
+                break;
+            }
+        }
+
+        $length -= $i;
+
+        for ($i = 1; $i < $length; ++$i) {
+            if ($from[$fromLength - $i] === $to[$toLength - $i]) {
+                array_unshift($end, $from[$fromLength - $i]);
+                unset($from[$fromLength - $i], $to[$toLength - $i]);
+            } else {
+                break;
+            }
+        }
+
+        $common = self::longestCommonSubsequence(
+          array_values($from), array_values($to)
+        );
+
+        $diff = array();
+        $line = 0;
+
+        if (isset($fromMatches[0]) && $toMatches[0] &&
+            count($fromMatches[0]) === count($toMatches[0]) &&
+            $fromMatches[0] !== $toMatches[0]) {
+            $diff[] = array(
+              '#Warning: Strings contain different line endings!', 0
+            );
+        }
+
+        foreach ($start as $token) {
+            $diff[] = array($token, 0 /* OLD */);
+        }
+
+        reset($from);
+        reset($to);
+
+        foreach ($common as $token) {
+            while ((($fromToken = reset($from)) !== $token)) {
+                $diff[] = array(array_shift($from), 2 /* REMOVED */);
+            }
+
+            while ((($toToken = reset($to)) !== $token)) {
+                $diff[] = array(array_shift($to), 1 /* ADDED */);
+            }
+
+            $diff[] = array($token, 0 /* OLD */);
+
+            array_shift($from);
+            array_shift($to);
+        }
+
+        while (($token = array_shift($from)) !== NULL) {
+            $diff[] = array($token, 2 /* REMOVED */);
+        }
+
+        while (($token = array_shift($to)) !== NULL) {
+            $diff[] = array($token, 1 /* ADDED */);
+        }
+
+        foreach ($end as $token) {
+            $diff[] = array($token, 0 /* OLD */);
+        }
+
+        return $diff;
     }
 
     /**

@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,8 @@
  * @author     Kore Nordmann <kn@ez.no>
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.0.0
  */
@@ -59,9 +59,8 @@
  * @author     Kore Nordmann <kn@ez.no>
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @author     Bernhard Schussek <bschussek@2bepublished.at>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
@@ -169,7 +168,7 @@ class PHPUnit_Framework_Constraint_IsEqual extends PHPUnit_Framework_Constraint
             }
 
             throw new PHPUnit_Framework_ExpectationFailedException(
-              trim($description."\n".$f->getMessage()),
+              trim($description . "\n" . $f->getMessage()),
               $f
             );
         }

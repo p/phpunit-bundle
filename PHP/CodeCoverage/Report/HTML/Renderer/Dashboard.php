@@ -2,7 +2,7 @@
 /**
  * PHP_CodeCoverage
  *
- * Copyright (c) 2009-2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2009-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      File available since Release 1.1.0
  */
@@ -48,10 +48,9 @@
  *
  * @category   PHP
  * @package    CodeCoverage
- * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @author     Sebastian Bergmann <sebastian@phpunit.de>
+ * @copyright  2009-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.1.0
  */
@@ -60,20 +59,15 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
     /**
      * @param PHP_CodeCoverage_Report_Node_Directory $node
      * @param string                                 $file
-     * @param string                                 $title
      */
-    public function render(PHP_CodeCoverage_Report_Node_Directory $node, $file, $title = NULL)
+    public function render(PHP_CodeCoverage_Report_Node_Directory $node, $file)
     {
-        if ($title === NULL) {
-            $title = $node->getName();
-        }
-
-        $classes  = array_merge($node->getClasses(), $node->getTraits());
+        $classes  = $node->getClassesAndTraits();
         $template = new Text_Template(
           $this->templatePath . 'dashboard.html'
         );
 
-        $this->setCommonTemplateVariables($template, $title);
+        $this->setCommonTemplateVariables($template, $node);
 
         $template->setVar(
           array(
@@ -232,5 +226,15 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
         }
 
         return $buffer;
+    }
+
+    protected function getActiveBreadcrumb(PHP_CodeCoverage_Report_Node $node, $isDirectory)
+    {
+        return sprintf(
+          '        <li><a href="%s.html">%s</a></li>' . "\n" .
+          '        <li class="active">(Dashboard)</li>' . "\n",
+          $node->getId(),
+          $node->getName()
+        );
     }
 }

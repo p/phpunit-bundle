@@ -2,7 +2,7 @@
 /**
  * PHP_Invoker
  *
- * Copyright (c) 2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2011-2012, Sebastian Bergmann <sb@sebastian-bergmann.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,40 +37,31 @@
  * @package    PHP
  * @subpackage Invoker
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2011-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-timer
  * @since      File available since Release 1.0.0
  */
 
-function php_invoker_autoload($class = NULL) {
-    static $classes = NULL;
-    static $path = NULL;
+spl_autoload_register(
+  function ($class)
+  {
+      static $classes = NULL;
+      static $path = NULL;
 
-    if ($classes === NULL) {
-        $classes = array(
-          'php_invoker' => '/Invoker.php',
-          'php_invoker_timeoutexception' => '/Invoker/TimeoutException.php'
-        );
+      if ($classes === NULL) {
+          $classes = array(
+            'php_invoker' => '/Invoker.php',
+            'php_invoker_timeoutexception' => '/Invoker/TimeoutException.php'
+          );
 
-        $path = dirname(dirname(__FILE__));
-    }
+          $path = dirname(dirname(__FILE__));
+      }
 
-    if ($class === NULL) {
-        $result = array(__FILE__);
+      $cn = strtolower($class);
 
-        foreach ($classes as $file) {
-            $result[] = $path . $file;
-        }
-
-        return $result;
-    }
-
-    $cn = strtolower($class);
-
-    if (isset($classes[$cn])) {
-        require $path . $classes[$cn];
-    }
-}
-
-spl_autoload_register('php_invoker_autoload');
+      if (isset($classes[$cn])) {
+          require $path . $classes[$cn];
+      }
+  }
+);

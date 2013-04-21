@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.0.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
@@ -127,12 +126,13 @@ class PHPUnit_Util_Type
         }
 
         if (is_string($value)) {
-            if (preg_match('~[^[:print:][:space:]]~', $value)) {
-                return 'Binary String: 0x'.bin2hex($value);
+            // Match for most non printable chars somewhat taking multibyte chars into account
+            if (preg_match('/[^\x09-\x0d\x20-\xff]/', $value)) {
+                return 'Binary String: 0x' . bin2hex($value);
             }
 
             return "'" .
-                   str_replace(array("\n\r", "\r"), array("\n", "\n"), $value) .
+                   str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), $value) .
                    "'";
         }
 
@@ -197,7 +197,7 @@ class PHPUnit_Util_Type
         }
 
         if (is_double($value) && (double)(integer)$value === $value) {
-            return $value.'.0';
+            return $value . '.0';
         }
 
         return (string)$value;
@@ -224,17 +224,17 @@ class PHPUnit_Util_Type
             return self::shortenedString($value);
         }
 
-        $origValue = $value;
-
         if (is_object($value)) {
-            $value = self::toArray($value);
+            return sprintf(
+              '%s Object (%s)',
+              get_class($value),
+              count(self::toArray($value)) > 0 ? '...' : ''
+            );
         }
 
         if (is_array($value)) {
             return sprintf(
-              "%s (%s)",
-
-              is_object($origValue) ? get_class($origValue) . ' Object' : 'Array',
+              'Array (%s)',
               count($value) > 0 ? '...' : ''
             );
         }

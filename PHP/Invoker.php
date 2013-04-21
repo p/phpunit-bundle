@@ -4,7 +4,7 @@ declare(ticks = 1);
 /**
  * PHP_Invoker
  *
- * Copyright (c) 2011, Sebastian Bergmann <sb@sebastian-bergmann.de>.
+ * Copyright (c) 2011-2012, Sebastian Bergmann <sb@sebastian-bergmann.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,8 @@ declare(ticks = 1);
  * @package    PHP
  * @subpackage Invoker
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2011-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-invoker
  * @since      File available since Release 1.0.0
  */
@@ -51,14 +51,19 @@ declare(ticks = 1);
  * @package    PHP
  * @subpackage Invoker
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @copyright  2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2011-2012 Sebastian Bergmann <sb@sebastian-bergmann.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
+ * @version    Release: 1.1.2
  * @link       http://github.com/sebastianbergmann/php-invoker
  * @since      Class available since Release 1.0.0
  */
 class PHP_Invoker
 {
+    /**
+     * @var integer
+     */
+    protected $timeout;
+
     /**
      * Invokes a callable and raises an exception when the execution does not
      * finish before the specified timeout.
@@ -82,7 +87,16 @@ class PHP_Invoker
         pcntl_signal(SIGALRM, array($this, 'callback'), TRUE);
         pcntl_alarm($timeout);
 
-        $result = call_user_func_array($callable, $arguments);
+        $this->timeout = $timeout;
+
+        try {
+            $result = call_user_func_array($callable, $arguments);
+        }
+
+        catch (Exception $e) {
+            pcntl_alarm(0);
+            throw $e;
+        }
 
         pcntl_alarm(0);
 
@@ -94,6 +108,11 @@ class PHP_Invoker
      */
     public function callback()
     {
-        throw new PHP_Invoker_TimeoutException;
+        throw new PHP_Invoker_TimeoutException(
+          sprintf(
+            'Execution aborted after %s',
+            PHP_Timer::secondsToTimeString($this->timeout)
+          )
+        );
     }
 }

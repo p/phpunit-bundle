@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 2.0.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.0.0
  */
@@ -66,15 +65,20 @@ abstract class PHPUnit_Framework_Assert
      * Asserts that an array has a specified key.
      *
      * @param  mixed  $key
-     * @param  array  $array
+     * @param  array|ArrayAccess  $array
      * @param  string $message
      * @since  Method available since Release 3.0.0
      */
-    public static function assertArrayHasKey($key, array $array, $message = '')
+    public static function assertArrayHasKey($key, $array, $message = '')
     {
         if (!(is_integer($key) || is_string($key))) {
             throw PHPUnit_Util_InvalidArgumentHelper::factory(
               1, 'integer or string'
+            );
+        }
+        if (!(is_array($array) || $array instanceof ArrayAccess)) {
+            throw PHPUnit_Util_InvalidArgumentHelper::factory(
+              2, 'array or ArrayAccess'
             );
         }
 
@@ -87,15 +91,20 @@ abstract class PHPUnit_Framework_Assert
      * Asserts that an array does not have a specified key.
      *
      * @param  mixed  $key
-     * @param  array  $array
+     * @param  array|ArrayAccess  $array
      * @param  string $message
      * @since  Method available since Release 3.0.0
      */
-    public static function assertArrayNotHasKey($key, array $array, $message = '')
+    public static function assertArrayNotHasKey($key, $array, $message = '')
     {
         if (!(is_integer($key) || is_string($key))) {
             throw PHPUnit_Util_InvalidArgumentHelper::factory(
               1, 'integer or string'
+            );
+        }
+        if (!(is_array($array) || $array instanceof ArrayAccess)) {
+            throw PHPUnit_Util_InvalidArgumentHelper::factory(
+              2, 'array or ArrayAccess'
             );
         }
 
@@ -252,6 +261,31 @@ abstract class PHPUnit_Framework_Assert
             $type, $isNativeType
           ),
           $message
+        );
+    }
+
+    /**
+     * Asserts that a haystack contains only instances of a given classname
+     *
+     * @param string $classname
+     * @param array|Traversable $haystack
+     * @param string $message
+     */
+    public static function assertContainsOnlyInstancesOf($classname, $haystack, $message = '')
+    {
+        if (!(is_array($haystack) ||
+            is_object($haystack) && $haystack instanceof Traversable)) {
+            throw PHPUnit_Util_InvalidArgumentHelper::factory(
+              2, 'array or iterator'
+            );
+        }
+
+        self::assertThat(
+            $haystack,
+            new PHPUnit_Framework_Constraint_TraversableContainsOnly(
+                $classname, FALSE
+            ),
+            $message
         );
     }
 
@@ -1343,11 +1377,11 @@ abstract class PHPUnit_Framework_Assert
      * Assert that the size of two arrays (or `Countable` or `Iterator` objects)
      * is the same.
      *
-     * @param integer $expected
-     * @param mixed   $actual
-     * @param string  $message
+     * @param array|Countable|Iterator $expected
+     * @param array|Countable|Iterator $actual
+     * @param string $message
      */
-    public function assertSameSize($expected, $actual, $message = '')
+    public static function assertSameSize($expected, $actual, $message = '')
     {
         if (!$expected instanceof Countable &&
             !$expected instanceof Iterator &&
@@ -1372,11 +1406,11 @@ abstract class PHPUnit_Framework_Assert
      * Assert that the size of two arrays (or `Countable` or `Iterator` objects)
      * is not the same.
      *
-     * @param integer $expected
-     * @param mixed   $actual
-     * @param string  $message
+     * @param array|Countable|Iterator $expected
+     * @param array|Countable|Iterator $actual
+     * @param string $message
      */
-    public function assertNotSameSize($expected, $actual, $message = '')
+    public static function assertNotSameSize($expected, $actual, $message = '')
     {
         if (!$expected instanceof Countable &&
             !$expected instanceof Iterator &&
@@ -1912,7 +1946,7 @@ abstract class PHPUnit_Framework_Assert
                 self::assertTrue($counted <= $count['<='], $message);
             }
         } else {
-            throw new InvalidArgumentException();
+            throw new PHPUnit_Framework_Exception;
         }
     }
 
@@ -2101,6 +2135,163 @@ abstract class PHPUnit_Framework_Assert
     }
 
     /**
+     * Asserts that two given JSON encoded objects or arrays are equal.
+     *
+     * @param string $expectedJson
+     * @param string $actualJson
+     * @param string $message
+     */
+    public static function assertJsonStringEqualsJsonString($expectedJson, $actualJson, $message = '')
+    {
+        $expected = json_decode($expectedJson);
+        if ($jsonError = json_last_error()) {
+            $message .=
+                PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::determineJsonError(
+                    $jsonError,
+                    PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::translateTypeToPrefix('expected')
+                );
+        }
+
+        $actual   = json_decode($actualJson);
+        if ($jsonError = json_last_error()) {
+            $message .=
+                PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::determineJsonError(
+                    $jsonError,
+                    PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::translateTypeToPrefix('actual')
+                );
+        }
+        return self::assertEquals($expected, $actual, $message);
+    }
+
+    /**
+     * Asserts that two given JSON encoded objects or arrays are not equal.
+     *
+     * @param string $expectedJson
+     * @param string $actualJson
+     * @param string $message
+     */
+    public static function assertJsonStringNotEqualsJsonString($expectedJson, $actualJson, $message = '')
+    {
+        $expected = json_decode($expectedJson);
+        if ($jsonError = json_last_error()) {
+            $message .=
+                PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::determineJsonError(
+                    $jsonError,
+                    PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::translateTypeToPrefix('expected')
+                );
+        }
+
+        $actual   = json_decode($actualJson);
+        if ($jsonError = json_last_error()) {
+            $message .=
+                PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::determineJsonError(
+                    $jsonError,
+                    PHPUnit_Framework_Constraint_JsonMatches_ErrorMessageProvider::translateTypeToPrefix('actual')
+                );
+        }
+
+        self::assertNotEquals($expected, $actual, $message);
+    }
+
+    /**
+     * Asserts that the generated JSON encoded object and the content of the given file are equal.
+     *
+     * @param string $expectedFile
+     * @param string $actualJson
+     * @param string $message
+     */
+    public static function assertJsonStringEqualsJsonFile($expectedFile, $actualJson, $message = '')
+    {
+        self::assertFileExists($expectedFile, $message);
+
+        if (!is_string($actualJson)) {
+            throw PHPUnit_Util_InvalidArgumentHelper::factory(2, 'string');
+        }
+
+        // call constraint
+        $constraint = new PHPUnit_Framework_Constraint_JsonMatches(
+            file_get_contents($expectedFile)
+        );
+
+        self::assertThat($actualJson, $constraint, $message);
+    }
+
+    /**
+     * Asserts that the generated JSON encoded object and the content of the given file are not equal.
+     *
+     * @param string $expectedFile
+     * @param string $actualJson
+     * @param string $message
+     */
+    public static function assertJsonStringNotEqualsJsonFile($expectedFile, $actualJson, $message = '')
+    {
+        self::assertFileExists($expectedFile, $message);
+
+        if (!is_string($actualJson)) {
+            throw PHPUnit_Util_InvalidArgumentHelper::factory(2, 'string');
+        }
+
+        // call constraint
+        $constraint = new PHPUnit_Framework_Constraint_JsonMatches(
+            file_get_contents($expectedFile)
+        );
+
+        self::assertThat($actualJson, new PHPUnit_Framework_Constraint_Not($constraint), $message);
+    }
+
+    /**
+     * Asserts that two JSON files are not equal.
+     *
+     * @param  string $expectedFile
+     * @param  string $actualFile
+     * @param  string $message
+     */
+    public static function assertJsonFileNotEqualsJsonFile($expectedFile, $actualFile, $message = '')
+    {
+        self::assertFileExists($expectedFile, $message);
+        self::assertFileExists($actualFile, $message);
+
+        $actualJson = file_get_contents($actualFile);
+        $expectedJson = file_get_contents($expectedFile);
+
+        // call constraint
+        $constraintExpected = new PHPUnit_Framework_Constraint_JsonMatches(
+            file_get_contents($expectedFile)
+        );
+
+        $constraintActual = new PHPUnit_Framework_Constraint_JsonMatches($actualJson);
+
+        self::assertThat($expectedJson, new PHPUnit_Framework_Constraint_Not($constraintActual), $message);
+        self::assertThat($actualJson, new PHPUnit_Framework_Constraint_Not($constraintExpected), $message);
+    }
+
+    /**
+     * Asserts that two JSON files are equal.
+     *
+     * @param  string $expectedFile
+     * @param  string $actualFile
+     * @param  string $message
+     */
+    public static function assertJsonFileEqualsJsonFile($expectedFile, $actualFile, $message = '')
+    {
+        self::assertFileExists($expectedFile, $message);
+        self::assertFileExists($actualFile, $message);
+
+        $actualJson = file_get_contents($actualFile);
+        $expectedJson = file_get_contents($expectedFile);
+
+        // call constraint
+        $constraintExpected = new PHPUnit_Framework_Constraint_JsonMatches(
+            file_get_contents($expectedFile)
+        );
+
+        $constraintActual = new PHPUnit_Framework_Constraint_JsonMatches($actualJson);
+
+        self::assertThat($expectedJson, $constraintActual, $message);
+        self::assertThat($actualJson, $constraintExpected, $message);
+    }
+
+    /**
      * Returns a PHPUnit_Framework_Constraint_And matcher object.
      *
      * @return PHPUnit_Framework_Constraint_And
@@ -2183,6 +2374,17 @@ abstract class PHPUnit_Framework_Assert
     }
 
     /**
+     * Returns a PHPUnit_Framework_Constraint_Callback matcher object.
+     *
+     * @param callable $callback
+     * @return PHPUnit_Framework_Constraint_Callback
+     */
+    public static function callback($callback)
+    {
+        return new PHPUnit_Framework_Constraint_Callback($callback);
+    }
+
+    /**
      * Returns a PHPUnit_Framework_Constraint_IsFalse matcher object.
      *
      * @return PHPUnit_Framework_Constraint_IsFalse
@@ -2244,6 +2446,18 @@ abstract class PHPUnit_Framework_Assert
     public static function containsOnly($type)
     {
         return new PHPUnit_Framework_Constraint_TraversableContainsOnly($type);
+    }
+
+    /**
+     * Returns a PHPUnit_Framework_Constraint_TraversableContainsOnly matcher
+     * object.
+     *
+     * @param string $classname
+     * @return PHPUnit_Framework_Constraint_TraversableContainsOnly
+     */
+    public static function containsOnlyInstancesOf($classname)
+    {
+        return new PHPUnit_Framework_Constraint_TraversableContainsOnly($classname, FALSE);
     }
 
     /**
@@ -2531,27 +2745,13 @@ abstract class PHPUnit_Framework_Assert
     }
 
     /**
-     * Fails a test with a synthetic error.
-     *
-     * @param  string  $message
-     * @param  string  $file
-     * @param  integer $line
-     * @param  array   $trace
-     * @throws PHPUnit_Framework_SyntheticError
-     */
-    public static function syntheticFail($message = '', $file = '', $line = 0, $trace = array())
-    {
-        throw new PHPUnit_Framework_SyntheticError($message, 0, $file, $line, $trace);
-    }
-
-    /**
      * Returns the value of an attribute of a class or an object.
      * This also works for attributes that are declared protected or private.
      *
      * @param  mixed   $classOrObject
      * @param  string  $attributeName
      * @return mixed
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public static function readAttribute($classOrObject, $attributeName)
     {

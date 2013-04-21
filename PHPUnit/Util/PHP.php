@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2013, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.4.0
  */
@@ -49,9 +49,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: @package_version@
+ * @copyright  2001-2013 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.4.0
  */
@@ -93,7 +92,9 @@ abstract class PHPUnit_Util_PHP
     protected function getPhpBinary()
     {
         if ($this->phpBinary === NULL) {
-            if (PHP_SAPI == 'cli' && isset($_SERVER['_'])) {
+            if (defined("PHP_BINARY")) {
+                $this->phpBinary = PHP_BINARY;
+            } else if (PHP_SAPI == 'cli' && isset($_SERVER['_'])) {
                 if (strpos($_SERVER['_'], 'phpunit') !== FALSE) {
                     $file = file($_SERVER['_']);
 
@@ -103,17 +104,30 @@ abstract class PHPUnit_Util_PHP
                     } else {
                         $this->phpBinary = ltrim(trim($file[0]), '#!');
                     }
-                } else {
+                } else if (strpos(basename($_SERVER['_']), 'php') !== FALSE) {
                     $this->phpBinary = $_SERVER['_'];
                 }
-            } else if (is_readable('@php_bin@')) {
-                $this->phpBinary = '@php_bin@';
+            }
+
+            if ($this->phpBinary === NULL) {
+                $possibleBinaryLocations = array(
+                    PHP_BINDIR . '/php',
+                    PHP_BINDIR . '/php-cli.exe',
+                    PHP_BINDIR . '/php.exe',
+                    '@php_bin@',
+                );
+                foreach ($possibleBinaryLocations as $binary) {
+                    if (is_readable($binary)) {
+                        $this->phpBinary = $binary;
+                        break;
+                    }
+                }
             }
 
             if (!is_readable($this->phpBinary)) {
                 $this->phpBinary = 'php';
             } else {
-                $this->phpBinary = escapeshellcmd($this->phpBinary);
+                $this->phpBinary = escapeshellarg($this->phpBinary);
             }
         }
 
@@ -208,14 +222,28 @@ abstract class PHPUnit_Util_PHP
      */
     protected function processChildResult(PHPUnit_Framework_Test $test, PHPUnit_Framework_TestResult $result, $stdout, $stderr)
     {
+        $time = 0;
+
         if (!empty($stderr)) {
-            $time = 0;
             $result->addError(
               $test,
-              new RuntimeException(trim($stderr)), $time
+              new PHPUnit_Framework_Exception(trim($stderr)), $time
             );
         } else {
-            $childResult = @unserialize($stdout);
+            set_error_handler(function($errno, $errstr, $errfile, $errline) {
+                throw new ErrorException($errstr, $errno, $errno, $errfile, $errline);
+            });
+            try {
+                $childResult = unserialize($stdout);
+                restore_error_handler();
+            } catch (ErrorException $e) {
+                restore_error_handler();
+                $childResult = FALSE;
+
+                $result->addError(
+                  $test, new PHPUnit_Framework_Exception(trim($stdout), 0, $e), $time
+                );
+            }
 
             if ($childResult !== FALSE) {
                 if (!empty($childResult['output'])) {
@@ -262,12 +290,6 @@ abstract class PHPUnit_Util_PHP
                       $test, $this->getException($failures[0]), $time
                     );
                 }
-            } else {
-                $time = 0;
-
-                $result->addError(
-                  $test, new RuntimeException(trim($stdout)), $time
-                );
             }
         }
 
